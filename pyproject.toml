@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "writeous"
+version = "0.1.1"
+description = "A minimal CLI progress tracker for manuscript writing."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.1.0",
+    "python-docx>=1.2.0"
+]
+authors = [
+    { name = "Mehdi" },
+    { name = "Stijn Denissen", email = "stijndenissen94@gmail.com"}
+]
+
+[project.scripts]
+writeous = "writeous.cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["writeous*"]
