@@ -18,7 +18,7 @@ authors = [
 ]
 
 [project.scripts]
-writeous = "writeous.cli"
+writeous = "writeous.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
