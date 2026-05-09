@@ -7,6 +7,36 @@ from datetime import datetime
 from docx import Document
 
 
+def generate_report_logic(log_path):
+    """Helper to generate the ASCII report."""
+    daily_stats = {}
+    if not os.path.exists(log_path):
+        click.echo("No log file found to generate report.")
+        return
+
+    with open(log_path, mode='r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            date = row['timestamp'].split(' ')[0]
+            delta = int(row['delta'])
+            if delta > 0:
+                daily_stats[date] = daily_stats.get(date, 0) + delta
+
+    if not daily_stats:
+        click.echo("No progress data found yet.")
+        return
+
+    click.echo(click.style("\n📈 DAILY PROGRESS OVERVIEW\n", bold=True, underline=True))
+    max_val = max(daily_stats.values())
+    chart_width = 40
+
+    for date in sorted(daily_stats.keys()):
+        words = daily_stats[date]
+        bar_len = int((words / max_val) * chart_width) if max_val > 0 else 0
+        bar = click.style("█" * bar_len, fg='yellow')
+        click.echo(f"{date} | {bar} {words} words")
+
+
 def get_docx_metrics(filepath):
     """
     Parses a .docx file to return total word count, including revision-tracked
@@ -147,36 +177,17 @@ def monitor(doc_path, output_folder, interval, goal):
             writer.writerow([timestamp, writing_score, went_well, improvements])
 
         click.echo(click.style("\n🌙 Session ended. You showed up for writing ❤️", fg='red'))
+        click.echo(click.style(f'>> Your writing score: {writing_score}', fg='green'))
+        click.echo(click.style(f'>> Went well: {went_well}', fg='green'))
+        click.echo(click.style(f'>> Can be improved: {improvements}', fg='green'))
 
+        generate_report_logic(log_file_quant)
 
 @main.command("report")
 @click.argument('log_path', type=click.Path(exists=True))
 def report(log_path):
     """Generate a daily progress report from the CSV log."""
-    daily_stats = {}
-
-    # Check if we have the new or old CSV format
-    with open(log_path, mode='r') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            date = row['timestamp'].split(' ')[0]
-            delta = int(row['delta'])
-            if delta > 0:
-                daily_stats[date] = daily_stats.get(date, 0) + delta
-
-    if not daily_stats:
-        click.echo("No progress data found yet.")
-        return
-
-    click.echo(click.style("\n📈 DAILY PROGRESS OVERVIEW\n", bold=True, underline=True))
-    max_val = max(daily_stats.values())
-    chart_width = 40
-
-    for date in sorted(daily_stats.keys()):
-        words = daily_stats[date]
-        bar_len = int((words / max_val) * chart_width) if max_val > 0 else 0
-        bar = click.style("█" * bar_len, fg='yellow')
-        click.echo(f"{date} | {bar} {words} words")
+    generate_report_logic(log_path)
 
 
 if __name__ == '__main__':
