@@ -34,6 +34,8 @@ QUALITATIVE_HEADER = [
 # interval is unnecessary work.
 WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
 
+MARKDOWN_HEADER_RE = re.compile(r"^(#+)\s+(.*)$", re.MULTILINE)
+
 
 def ensure_csv(path, header):
     """Create a CSV file with a header if it does not already exist."""
@@ -109,55 +111,83 @@ def generate_report_logic(log_path):
         click.echo(f"{date} | {bar} {words} words")
 
 
-def get_docx_metrics(filepath):
+def get_file_metrics(filepath):
     """
-    Parses a .docx file to return total word count, including revision-tracked
-    additions and deletions.
+    Parses .docx or .md files to return total word count and section breakdown.
     """
-    try:
-        doc = Document(filepath)
-        sections = {}
-        current_section = "Front Matter"
-        sections[current_section] = 0
-        total_words = 0
-
-        for p in doc.paragraphs:
-            # 1. Update Section Context
-            style_name = getattr(p.style, "name", "") or ""
-            if style_name.startswith("Heading"):
-                current_section = p.text.strip() if p.text.strip() else "Untitled Section"
-                if current_section not in sections:
-                    sections[current_section] = 0
-                continue
-
-            # 2. Extract ALL text nodes from the XML (Normal, Inserted, and Deleted)
-            # w:t = normal text
-            # w:ins//w:t = tracked additions
-            # w:delText = tracked deletions
-            #
-            # Enhancement retained from your enhanced version: read XML text nodes
-            # instead of only p.text.
-            # Why necessary: python-docx's visible paragraph text can miss some
-            # revision-tracked content. For a writing-progress tracker, seeing
-            # tracked edits makes the progress signal more useful.
-            all_text_nodes = p._element.xpath(".//w:t | .//w:delText")
-            paragraph_content = " ".join([node.text for node in all_text_nodes if node.text])
-
-            # Enhancement: count only real word-like tokens.
-            # Why necessary: punctuation-only XML fragments and empty artifacts
-            # should not inflate the word count.
-            words = count_words(paragraph_content)
-
-            sections[current_section] = sections.get(current_section, 0) + words
-            total_words += words
-
-        return total_words, sections
-    except Exception as e:
-        # Enhancement: show the real read error instead of silently returning None.
-        # Why necessary: silent failure makes debugging hard when the document is
-        # locked, corrupted, or not a valid .docx file.
-        click.echo(click.style(f"Could not read document: {e}", fg="red"), err=True)
+    if not os.path.exists(filepath):
         return None, None
+
+    # Handle Markdown
+    if filepath.lower().endswith(".md"):
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            total_words = count_words(content)
+            sections = {"Front Matter": 0}
+            current_section = "Front Matter"
+
+            # Split by lines to track sections
+            for line in content.splitlines():
+                header_match = MARKDOWN_HEADER_RE.match(line)
+                if header_match:
+                    current_section = header_match.group(2).strip()
+                    sections[current_section] = 0
+                else:
+                    sections[current_section] += count_words(line)
+
+            return total_words, sections
+        except Exception as e:
+            click.echo(click.style(f"Could not read Markdown: {e}", fg="red"), err=True)
+            return None, None
+
+    # Handle DOCX (Existing logic)
+    elif filepath.lower().endswith(".docx"):
+        try:
+            doc = Document(filepath)
+            sections = {}
+            current_section = "Front Matter"
+            sections[current_section] = 0
+            total_words = 0
+
+            for p in doc.paragraphs:
+                # 1. Update Section Context
+                style_name = getattr(p.style, "name", "") or ""
+                if style_name.startswith("Heading"):
+                    current_section = p.text.strip() if p.text.strip() else "Untitled Section"
+                    if current_section not in sections:
+                        sections[current_section] = 0
+                    continue
+
+                # 2. Extract ALL text nodes from the XML (Normal, Inserted, and Deleted)
+                # w:t = normal text
+                # w:ins//w:t = tracked additions
+                # w:delText = tracked deletions
+                #
+                # Enhancement retained from your enhanced version: read XML text nodes
+                # instead of only p.text.
+                # Why necessary: python-docx's visible paragraph text can miss some
+                # revision-tracked content. For a writing-progress tracker, seeing
+                # tracked edits makes the progress signal more useful.
+                all_text_nodes = p._element.xpath(".//w:t | .//w:delText")
+                paragraph_content = " ".join([node.text for node in all_text_nodes if node.text])
+
+                # Enhancement: count only real word-like tokens.
+                # Why necessary: punctuation-only XML fragments and empty artifacts
+                # should not inflate the word count.
+                words = count_words(paragraph_content)
+
+                sections[current_section] = sections.get(current_section, 0) + words
+                total_words += words
+
+            return total_words, sections
+        except Exception as e:
+            # Enhancement: show the real read error instead of silently returning None.
+            # Why necessary: silent failure makes debugging hard when the document is
+            # locked, corrupted, or not a valid .docx file.
+            click.echo(click.style(f"Could not read document: {e}", fg="red"), err=True)
+            return None, None
 
 
 def find_active_section(current_sections, last_sections):
@@ -219,9 +249,10 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
     """Monitor Docx progress, section growth, and log to CSV."""
     click.clear()
     filename = os.path.basename(doc_path)
+    valid_extensions = ('.docx', '.md')
 
-    if not filename.lower().endswith(".docx"):
-        click.echo(click.style("⚠️  Error: Section tracking currently only supports .docx files.", fg="red"))
+    if not filename.lower().endswith(valid_extensions):
+        click.echo(click.style("⚠️ Error: Writeous supports .docx and .md files.", fg="red"))
         return
 
     # Enhancement: validate interval and goal early.
@@ -243,7 +274,7 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
     log_file_quant = os.path.join(output_folder, QUANTITATIVE_LOG)
     ensure_csv(log_file_quant, QUANTITATIVE_HEADER)
 
-    last_count, last_sections = get_docx_metrics(doc_path)
+    last_count, last_sections = get_file_metrics(doc_path)
     if last_count is None:
         raise click.ClickException("Could not start monitoring because the document could not be read.")
 
@@ -259,7 +290,7 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
 
     try:
         while True:
-            current_count, current_sections = get_docx_metrics(doc_path)
+            current_count, current_sections = get_file_metrics(doc_path)
 
             if current_count is not None:
                 delta = current_count - last_count
