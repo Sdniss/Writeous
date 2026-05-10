@@ -294,11 +294,11 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
                     writer.writerow([timestamp, current_count, delta, section_count, active_section])
 
                 # Terminal Dashboard
-                status = f"[{timestamp[11:]}] Total: {current_count}"
+                status = f"[{timestamp[11:]}] Words: {current_count}"
                 diff = format_delta(delta)
                 goal_txt = goal_status(session_delta, goal)
 
-                click.echo(status + diff + f" | Session: {session_delta:+d}" + goal_txt + f" | Sections: {section_count}")
+                click.echo(status + diff + f" | Sections: {section_count} | \u0394Session:{format_delta(session_delta)}" + goal_txt)
 
                 if section_growth > 0:
                     click.echo(click.style(f"   → Focus: {active_section} (+{section_growth})", fg="cyan"))
@@ -319,9 +319,9 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
         # Enhancement: use click.prompt instead of raw input().
         # Why necessary: click.prompt is consistent with Click CLIs and behaves
         # better with defaults, terminal handling, and future validation.
-        writing_score = click.prompt("How would you rate your writing day today (0-10)?", default="")
-        went_well = click.prompt("What went well?", default="")
-        improvements = click.prompt("What would you like to improve?", default="")
+        writing_score = click.prompt("How would you rate your writing day today (0-10)?", default="", show_default=False)
+        went_well = click.prompt("What went well?", default="", show_default=False)
+        improvements = click.prompt("What would you like to improve?", default="", show_default=False)
 
         # Log
         with open(log_file_qual, "a", newline="", encoding="utf-8") as f:
