@@ -5,7 +5,7 @@
     <style>
         body { background: #1a1a1a; color: white; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
 
-        /* Box made bigger: 800x600 for a more spacious workspace */
+        /* Box: 800x600 */
         #universe {
             position: relative;
             width: 800px;
@@ -16,7 +16,7 @@
             border-radius: 10px;
         }
 
-        /* Cats made bigger: 80px */
+        /* Animals: 80px */
         .cat {
             position: absolute;
             font-size: 80px;
@@ -46,12 +46,10 @@
 </head>
 <body>
     <h1>WRITING UNIVERSE</h1>
-    <div id="universe">
-        </div>
-    <p id="status">The universe is quiet...</p>
+    <div id="universe"></div>
+    <p id="status">Connecting to the stars...</p>
 
     <script>
-        // Helper to generate a random neon color
         function getRandomNeon() {
             const colors = ['#00ff00', '#00ffff', '#ff00ff', '#ffff00', '#ff4500', '#7fff00', '#00ced1'];
             return colors[Math.floor(Math.random() * colors.length)];
@@ -59,6 +57,7 @@
 
         async function checkStatus() {
             try {
+                // Fetch the list of objects: [{name: "...", icon: "..."}, ...]
                 const response = await fetch('/get-pulses');
                 const data = await response.json();
 
@@ -79,32 +78,36 @@
                 } else {
                     status.innerText = `${data.active_writers.length} writer(s) active!`;
 
-                    data.active_writers.forEach((writer, index) => {
-                        const catDiv = document.createElement('div');
+                    data.active_writers.forEach((writerObj, index) => {
+                        const animalDiv = document.createElement('div');
                         const color = getRandomNeon();
 
-                        catDiv.className = 'cat active';
-                        catDiv.style.filter = `drop-shadow(0 0 15px ${color})`;
+                        animalDiv.className = 'cat active';
+                        animalDiv.style.filter = `drop-shadow(0 0 15px ${color})`;
 
-                        // Spread them out across the bigger box
+                        // Distribute animals across the box
                         const xPos = (10 + (index * 25)) % 90;
-                        catDiv.style.left = `${xPos}%`;
-                        catDiv.style.top = '35%';
+                        animalDiv.style.left = `${xPos}%`;
+                        animalDiv.style.top = '35%';
 
-                        catDiv.innerHTML = `
-                            😺<br>
-                            <div class="writer-name" style="color: ${color}">${writer}</div>
+                        // UPDATED: Now using writerObj.icon and writerObj.name
+                        animalDiv.innerHTML = `
+                            ${writerObj.icon}<br>
+                            <div class="writer-name" style="color: ${color}">${writerObj.name}</div>
                         `;
 
-                        universe.appendChild(catDiv);
+                        universe.appendChild(animalDiv);
                     });
                 }
             } catch (err) {
                 console.error("Connection lost to the stars...", err);
+                document.getElementById('status').innerText = "Universe offline. Check server.py status.";
             }
         }
 
+        // Check every 3 seconds
         setInterval(checkStatus, 3000);
+        checkStatus(); // Run once immediately on load
     </script>
 </body>
 </html>
