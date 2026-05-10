@@ -235,7 +235,7 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
 
     click.echo(click.style(f"🕯Lantern Lit: Monitoring {filename}", fg="yellow", bold=True))
     if colab:
-        click.echo(click.style(f">>> Colab mode on! Miauw {name} 😺<<<\nView at http://127.0.0.1:5000/universe", fg="yellow", bold=True))
+        click.echo(click.style(f">>> Colab mode on! Miauw {name} 😺<<<\nView at https://writeous.stijndenissen.me/universe", fg='yellow', bold=True))
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -273,7 +273,7 @@ def monitor(doc_path, output_folder, interval, goal, colab, name):
                     # We send a '1' if there is ANY change (add or delete)
                     try:
                         requests.post(
-                            "http://127.0.0.1:5000/heartbeat",
+                            "https://writeous.stijndenissen.me/heartbeat",
                             json={"pulse": 1, "writer": name},
                             timeout=2,
                         )
