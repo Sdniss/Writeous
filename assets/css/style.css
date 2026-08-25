@@ -1,0 +1,83 @@
+/* --- GENERAL RESET AND BASE STYLES --- */
+:root {
+    /* ☕ The Color Palette (Coffee Shop Inspired) */
+    --color-paper: #F5EFE8; /* Off-white, cream, aged paper color */
+    --color-ink: #4A3C32;   /* Deep coffee/charcoal brown for text */
+    --color-accent: #B89D7A;/* Tan/Copper wood tone (for buttons, underlines) */
+    --color-light-gray: #6E615A; /* For subtle secondary text */
+
+    /* ✒️ Typography Setup */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-paper);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--color-ink);
+    padding-top: 80px; /* Space for the fixed header */
+}
+
+/* Headings and Typography */
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    color: var(--color-ink);
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+}
+
+h1 { font-size: 3rem; } /* Large impact on the landing page */
+h2 { font-size: 2rem; margin-top: 1.5em;}
+p { margin-bottom: 1.5em; }
+
+/* --- COMPONENT STYLING --- */
+
+/* Container for general content layout and max width */
+.container {
+    max-width: 900px;
+    margin: 0 auto; /* Centers the main content area */
+    padding: 2rem;
+}
+
+/* Call to Action Buttons (The Wood Plaque Vibe) */
+.cta-button {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: white;
+    text-decoration: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.1s;
+    font-weight: bold;
+    margin-right: 15px;
+    border: none; /* Important if used inside a form */
+    cursor: pointer;
+}
+
+/* Hover effect to simulate depth or warmth */
+.cta-button:hover {
+    background-color: #a08c70; /* Slightly darker wood on hover */
+    transform: translateY(-1px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Section dividers/accents */
+.divider {
+    border: none;
+    height: 2px;
+    background-color: var(--color-light-gray);
+    margin: 3rem 0;
+}
+
+/* Pseudo background effect for certain sections (like the Hero) */
+.hero-section {
+    padding: 6rem 0;
+    text-align: center;
+}

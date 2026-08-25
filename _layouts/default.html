@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title | default: "Writeous - Your Writing Companion" }}</title>
+
+    <!-- Google Fonts Link (Playfair Display for titles, Inter for body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.google.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <!-- Link the global stylesheet -->
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+
+<body>
+
+    <!-- THE FIXED HEADER (The Cafe Signage) -->
+    <header class="main-header" style="position: fixed; top: 0; width: 100%; background-color: var(--color-paper); border-bottom: 1px solid #ddd; z-index: 100;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-family: var(--font-heading); font-size: 1.8rem; text-decoration: none; color: var(--color-ink);">Writeous</a>
+            <nav>
+                <!-- Navigation links must be manually added for Jekyll to understand -->
+                <a href="/#progress" style="margin-right: 20px; text-decoration: none;">Tracker</a>
+                <a href="/desktop.html" style="text-decoration: none;">Desktop Tool</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="container">
+        {{ content }}
+    </main>
+
+    <!-- FOOTER (The Subtle Credit) -->
+    <footer>
+        <div class="container" style="text-align: center; padding: 2rem 0; border-top: 1px solid #ddd; margin-top: 4rem;">
+            &copy; {{ site.time | date: "%Y" }} Writeous. Built for focus.
+        </div>
+    </footer>
+
+</body>
+</html>
